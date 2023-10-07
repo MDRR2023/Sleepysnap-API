@@ -4,10 +4,13 @@ import tensorflow as tf
 from PIL import Image
 import os
 
+# Menonaktifkan operasi operasi GPU
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 app = Flask(__name__)
 
 # Load model
-model_path = 'bestModel.h5'  
+model_path = 'bestModel.h5'
 model = tf.keras.models.load_model(model_path)
 
 # Preprocess input image
@@ -28,11 +31,11 @@ def predict():
     try:
         if 'image' not in request.files:
             raise ValueError('No image found')
-        
+
         image = request.files['image']
         image_data = preprocess_image(image)
         prediction = model.predict(image_data)[0]
-        
+
         category = 'Segar' if np.argmax(prediction) == 1 else 'Mengantuk'
         confidence = float(prediction[np.argmax(prediction)])
 
@@ -46,4 +49,4 @@ def predict():
         return jsonify({'error': str(e)}), 400, {'Content-Type': 'application/json'}
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
