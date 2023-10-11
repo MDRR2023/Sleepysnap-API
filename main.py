@@ -15,6 +15,12 @@ app = Flask(__name__)
 model_path = 'bestModel.h5'
 model = tf.keras.models.load_model(model_path)
 
+# Memeriksa tipe file yang diterima
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Preprocess input image
 def preprocess_image(image):
     try:
@@ -33,8 +39,15 @@ def predict():
     try:
         if 'image' not in request.files:
             raise ValueError('No image found')
-
+        
         image = request.files['image']
+        
+        if image.filename == '':
+            raise ValueError('No selected file')
+        
+        if not allowed_file(image.filename):
+            raise ValueError('Invalid file type')
+
         image_data = preprocess_image(image)
         prediction = model.predict(image_data)[0]
 
